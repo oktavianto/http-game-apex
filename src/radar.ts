@@ -45,4 +45,5 @@ function updateSense(localPlayer: app.core.Player | undefined, players: Array<ap
   if (!localPlayer) return;
   if (!location.hash.includes('enable-sense')) return;
   sense.updateStates(localPlayer, players);
+  aimbot.updateStates(levelName, localPlayer, players);
 }
