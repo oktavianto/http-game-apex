@@ -24,7 +24,7 @@ export class Item extends app.api.Adapter<app.api.Entity> {
       case ItemType.EvoShield3:
         return '#BA68C8'; // Purple
       default:
-        return;
+        return '#2bf4ff';
     }
   }
   
