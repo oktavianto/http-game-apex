@@ -1,49 +1,48 @@
 import * as app from '..';
-const maxEntities = Array(60).fill(0).map((_, i) => i);
+const maxEntities = 0x10000;
 
 export class EntityList extends app.api.Adapter<app.api.Entity> {
-  private readonly players: Record<string, app.Player> = {};
-
+  private readonly entities = new Map<bigint, app.Entity>();
+  private nextTime = 0;
+  
   constructor(address: bigint,
-    private readonly channel: app.api.Channel,
-    private readonly pointers = maxEntities.map(x => new app.UInt64(x << 5, 1000))) {
-    super(new app.api.Entity(address, pointers));
-    this.source.emitter.addEventListener('postReceive', this.onPostReceive.bind(this));
+    private readonly pointers = Array(maxEntities).fill(0).map((_, i) => new app.UInt64(i << 5, 1000))) {
+    super(new app.api.Entity(address, pointers, {requestBatch: true}));
   }
 
-  get value() {
-    return Object.values(this.players).filter(x => x.isValid);
+  get map(): ReadonlyMap<bigint, app.Entity> {
+    return this.entities;
   }
 
-  private handleCreates(addresses: Array<bigint>) {
-    for (const x of addresses) {
-      const key = x.toString(16);
-      if (!this.players[key]) {
-        const player = new app.Player(x);
-        this.players[key] = player;
-        this.channel.create(player);
-      }
+  update(channel: app.api.Channel) {
+    if (!this.nextTime || this.nextTime < Date.now()) {
+      this.onUpdate(channel);
+      this.nextTime = Date.now() + 1000;
     }
   }
 
-  private handleDeletes(addresses: Array<bigint>) {
-    for (const x of addresses) {
-      const key = x.toString(16);
-      if (this.players[key]) {
-        this.channel.delete(this.players[key]);
-        delete this.players[key];
-      }
+  private checkCreate(address: bigint, channel: app.api.Channel, knownSet: Set<bigint>) {
+    if (!this.entities.has(address)) {
+      const entity = new app.Entity(address);
+      this.entities.set(address, entity);
+      channel.create(entity);
+      knownSet.add(address);
+    } else {
+      knownSet.add(address);
     }
   }
 
-  private onPostReceive() {
-    const addresses = this.pointers
-      .map(x => x.value)
-      .filter(Boolean);
-    this.handleCreates(addresses
-      .filter(x => !this.players[x.toString(16)]));
-    this.handleDeletes(Object.keys(this.players)
-      .map(x => BigInt(`0x${x}`))
-      .filter(x => !addresses.includes(x)));
+  private onUpdate(channel: app.api.Channel) {
+    const knownSet: Set<bigint> = new Set();
+    for (const pointer of this.pointers) {
+      const address = pointer.value;
+      if (!address) continue;
+      this.checkCreate(address, channel, knownSet);
+    }
+    for (const [k, v] of this.entities) {
+      if (knownSet.has(k)) continue;
+      this.entities.delete(k);
+      channel.delete(v);
+    }
   }
 }

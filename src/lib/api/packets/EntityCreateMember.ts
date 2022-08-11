@@ -1,6 +1,6 @@
 import * as app from '..';
 
-export class CreateEntityMember implements app.IPacketWriter {
+export class EntityCreateMember implements app.IPacketWriter {
   constructor(offset: number, interval: number, size: number) {
     this.offset = offset;
     this.interval = interval;
@@ -8,9 +8,9 @@ export class CreateEntityMember implements app.IPacketWriter {
   }
 
   write(stream: app.BinaryWriter) {
-    stream.writeUInt16(this.offset);
-    stream.writeUInt16(this.interval);
-    stream.writeUInt16(this.size);
+    stream.writeVariableLength(this.offset);
+    stream.writeVariableLength(this.interval);
+    stream.writeVariableLength(this.size);
   }
 
   readonly offset: number;

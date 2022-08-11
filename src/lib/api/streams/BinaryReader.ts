@@ -2,8 +2,8 @@ export class BinaryReader {
   private readonly buffer: DataView;
   private offset: number;
 
-  constructor(buffer: DataView) {
-    this.buffer = buffer;
+  constructor(buffer: ArrayBuffer) {
+    this.buffer = new DataView(buffer);
     this.offset = 0;
   }
 
@@ -11,29 +11,15 @@ export class BinaryReader {
     return this.offset < this.buffer.byteLength - this.buffer.byteOffset;
   }
 
-  readByteArray() {
-    const size = this.readUInt16();
-    const buffer = new DataView(this.buffer.buffer, this.buffer.byteOffset + this.offset, size);
+  readBytes(size: number) {
+    const result = new DataView(this.buffer.buffer, this.offset, size);
     this.offset += size;
-    return buffer;
+    return result;
   }
-
-  readEntityArray<T>(factory: (stream: BinaryReader) => T) {
-    const size = this.readUInt16();
-    const items = [];
-    for (let i = 0; i < size; i++) items[i] = factory(this);
-    return items;
-  }
-
+  
   readUInt8() {
     const result = this.buffer.getUint8(this.offset);
     this.offset += 1;
-    return result;
-  }
-
-  readUInt16() {
-    const result = this.buffer.getUint16(this.offset, true);
-    this.offset += 2;
     return result;
   }
 
@@ -41,5 +27,18 @@ export class BinaryReader {
     const result = this.buffer.getBigUint64(this.offset, true);
     this.offset += 8;
     return result;
+  }
+
+  readVariableLength() {
+    var more = true;
+    var value = 0;
+    var shift = 0;
+    while (more) {
+      var b = this.readUInt8();
+      more = (b & 0x80) !== 0;
+      value |= (b & 0x7F) << shift;
+      shift += 7;
+    }
+    return value;
   }
 }
