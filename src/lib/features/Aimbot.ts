@@ -15,17 +15,18 @@ export class Aimbot {
     let smoothingDivisor;
     if (enemyDistance <= 200) {//200-400 is pretty much only close range
       maxAngleDeltaRange = 50;
-      smoothingDivisor = 0.5;
+      smoothingDivisor = 2;
     }
     else if (enemyDistance <= 400) {
       maxAngleDeltaRange = 10;
-      smoothingDivisor = 2;
+      smoothingDivisor = 4;
     }
     else
       return; //no aimbot past 400
     const newViewAnglesStats: ViewAnglesStats = this.createNewViewingAnglesStats(localPlayer, closestEnemyPlayer, smoothingDivisor);
     if (newViewAnglesStats.yawDeltaAbs > maxAngleDeltaRange) return;
     if (newViewAnglesStats.pitchDeltaAbs > maxAngleDeltaRange) return;
+    if (!localPlayer.zooming.value) return;
     this.writeNewViewingUngles(localPlayer, newViewAnglesStats);
   }
  

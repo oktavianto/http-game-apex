@@ -4,8 +4,8 @@ export const playerOffsets = {
   iTeamNum: 0x448,
   iName: 0x589,
   lifeState: 0x798,
-  viewAngles: 0x24CC, /* ammoPoolCapacity - 0x14 */
+  viewAngles: 0x24e0, /* ammoPoolCapacity - 0x14 */
   bleedoutState: 0x2688,
-  zooming: 0x1750,
+  zooming: 0x1bc1,
   aimpunch: 0x23f8
 };
