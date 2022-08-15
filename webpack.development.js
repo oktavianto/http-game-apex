@@ -5,7 +5,8 @@ module.exports = Object.assign(common, {
   devtool: 'eval-source-map',
   devServer: {
     client: false,
-    port: 3000,
+    hot: true,
+    port: 4040,
     static: {directory: common.output.path}
   },
   module: {

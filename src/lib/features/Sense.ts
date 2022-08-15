@@ -2,7 +2,7 @@ import * as app from '..';
 
 export class Sense {
   constructor(
-    private readonly maximumDistance = 200) {}
+    private readonly maximumDistance = 400) {}
 
   updateItems(localPlayer: app.core.Player, items: Iterable<app.core.Item>) {
     for (const item of items) {
